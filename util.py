@@ -13,7 +13,7 @@ class Round:
             dtype = int
         )
         self.PLAYER = _WHITE
-        self.TURN = self.PLAYER
+        self.TURN = 1
         self.SCORE = (0, 0)
         self.HISTORY = []
         self.WINNER = _BLANK

@@ -14,8 +14,8 @@ class Human_Player:
         #         continue
 
         move = game.clicked_buttons
-        print("ask_move")
-        print(move)
+        # print("ask_move")
+        # print(move)
 
         return to_string(move)
 
