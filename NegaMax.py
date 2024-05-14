@@ -5,14 +5,6 @@ inf = float("infinity")
 
 
 def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
-    """
-    This implements Negamax with transposition tables.
-    This method is not meant to be used directly. See ``easyAI.Negamax``
-    for an example of practical use.
-    This function is implemented (almost) acccording to
-    http://en.wikipedia.org/wiki/Negamax
-    """
-
     alphaOrig = alpha
 
     # Is there a transposition table and is this game in it ?
@@ -107,54 +99,6 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
 
 
 class Negamax:
-    """
-    This implements Negamax on steroids. The following example shows
-    how to setup the AI and play a Connect Four game:
-
-        >>> from easyAI.games import ConnectFour
-        >>> from easyAI import Negamax, Human_Player, AI_Player
-        >>> scoring = lambda game: -100 if game.lose() else 0
-        >>> ai_algo = Negamax(8, scoring) # AI will think 8 turns in advance
-        >>> game = ConnectFour([Human_Player(), AI_Player(ai_algo)])
-        >>> game.play()
-
-    Parameters
-    -----------
-
-    depth:
-      How many moves in advance should the AI think ?
-      (2 moves = 1 complete turn)
-
-    scoring:
-      A function f(game)-> score. If no scoring is provided
-         and the game object has a ``scoring`` method it ill be used.
-
-    win_score:
-      Score above which the score means a win. This will be
-        used to speed up computations if provided, but the AI will not
-        differentiate quick defeats from long-fought ones (see next
-        section).
-
-    tt:
-      A transposition table (a table storing game states and moves)
-      scoring: can be none if the game that the AI will be given has a
-      ``scoring`` method.
-
-    Notes
-    -----
-
-    The score of a given game is given by
-
-    >>> scoring(current_game) - 0.01*sign*current_depth
-
-    for instance if a lose is -100 points, then losing after 4 moves
-    will score -99.96 points but losing after 8 moves will be -99.92
-    points. Thus, the AI will chose the move that leads to defeat in
-    8 turns, which makes it more difficult for the (human) opponent.
-    This will not always work if a ``win_score`` argument is provided.
-
-    """
-
     def __init__(self, depth, scoring=None, win_score=+inf, tt=None):
         self.scoring = scoring
         self.depth = depth

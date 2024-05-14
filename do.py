@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 import streamlit as st
 from streamlit import session_state
-from util import to_string, to_tuple, convert, convert2, Round
+from util import to_string, to_tuple, Round
 
 # Page configuration
 st.set_page_config(
@@ -75,21 +75,29 @@ GAME_INFO = st.sidebar.container()
 class Hexpawn():
     def __init__(self, players, size=(4, 4)) -> None:
         self.size = M, N = size
+        # Initialize the game
+        if "ROUND" not in session_state:
+            session_state.ROUND = Round()
+        p1, p2 =[], []
+        for i, col in enumerate(session_state.ROUND.BOARD):
+            for j, cell in enumerate(col):
+                if cell == _BLACK: p1.append((i, j))
+                elif (cell == _WHITE or cell == _STAND): p2.append((i, j))
+                
         p = [[(i, j) for j in range(N)] for i in [0, M - 1]]
 
-        for i, d, goal, pawns in [(0, 1, M - 1, p[0]), (1, -1, 0, p[1])]:
+        for i, d, goal, pawns in [(0, -1, 0, p2), (1, 1, M - 1, p1)]:
             players[i].direction = d
             players[i].goal_line = goal
             players[i].pawns = pawns
 
-        self.players = players
-        self.current_player = 1
-        self.clicked_buttons = []
-        # Initialize the game
-        if "ROUND" not in session_state:
-            session_state.ROUND = Round()
 
-        self.draw_board(True)
+        self.players = players
+        self.current_player = session_state.ROUND.PLAYER
+        self.clicked_buttons = session_state.ROUND.MOVES
+        print("init")
+        print(self.clicked_buttons)
+    
 
     def possible_moves(self):
         moves = []
@@ -117,7 +125,7 @@ class Hexpawn():
         if (x + d, y - 1) in opponent_pawns:
             moves.append((x + d, y - 1))
 
-        return list(map(convert2, [(i, j, self.size[0]) for i, j in moves]))
+        return moves
         # return moves
 
     def make_move(self, move):
@@ -131,20 +139,23 @@ class Hexpawn():
     def update_BOARD(self, move):
         move = list(map(to_tuple, move.split(" ")))
 
-        bx = self.size[0] - int(move[0][0]) - 1
+        bx = int(move[0][0])
         by = int(move[0][1])
-        ex = int(self.size[0] - int(move[1][0]) - 1)
+        ex = int(move[1][0])
         ey = int(move[1][1])
         session_state.ROUND = deepcopy(session_state.ROUND)
         # session_state.ROUND.update_board(ex, ey, self.current_player)
         session_state.ROUND.BOARD[ex, ey] = self.current_player
         session_state.ROUND.BOARD[bx][by] = 0
 
+        while ( session_state.ROUND.MOVES != []):
+            session_state.ROUND.MOVES.pop()
+            self.clicked_buttons.pop()
         print("update_BOARD")
+        print(session_state.ROUND.MOVES)
         print(session_state.ROUND.BOARD)
-        self.draw_board(True)
+        # self.draw_board(True)
 
-    
 
     # Check if winner emerge from move
     def check_win(self) -> int:
@@ -171,6 +182,7 @@ class Hexpawn():
 
     def switch_player(self):
         self.current_player = self.opponent_index()
+        session_state.ROUND.PLAYER = self.current_player
     
     def copy(self):
         return deepcopy(self)
@@ -201,10 +213,6 @@ class Hexpawn():
 
     # Triggers the board response on click
     def handle_click(self, x, y):
-        """
-        Controls whether to pass on / continue current board / may start new round
-        """
-        
         if session_state.ROUND.BOARD[x][y] == (_BLANK or _STAND or self.opponent_index()):
             pass
 
@@ -214,21 +222,19 @@ class Hexpawn():
             for i in range(self.size[0]):
                 if session_state.ROUND.BOARD[x][y] == _MOVES:
                     session_state.ROUND.BOARD[x][y] = _BLANK
-            self.clicked_buttons = list(map(convert2, [(i, j, self.size[0]) for i, j in session_state.ROUND.MOVES]))
+            self.clicked_buttons = session_state.ROUND.MOVES
 
         elif session_state.ROUND.WINNER == _BLANK:
             session_state.ROUND = deepcopy(session_state.ROUND)
             session_state.ROUND.BOARD[x][y] = _STAND
             
-            MOVES = session_state.ROUND.MOVES
-            if (len(MOVES) != 0):
-                session_state.ROUND.BOARD[MOVES[0][0]][MOVES[0][1]] = game.current_player
-                for i in range(self.size[0]):
-                    if session_state.ROUND.BOARD[MOVES[0][0] + self.player().d][i] == _MOVES:
-                        session_state.ROUND.BOARD[MOVES[0][0] +  self.player().d][i] = _BLANK
+            if (len(session_state.ROUND.MOVES) != 0):
+                while session_state.ROUND.MOVES != []:
+                    x = session_state.ROUND.MOVES.pop()
+                    session_state.ROUND.BOARD[x[0]][x[1]] = _BLANK
 
             session_state.ROUND.MOVES.append((x,y))
-            moves = self.pawn_moves(convert([x, self.size[0]]), y)
+            moves = self.pawn_moves(x, y)
             # print(moves)
             for cell in (moves):
                 session_state.ROUND.BOARD[cell[0]][cell[1]] = _MOVES
@@ -262,8 +268,8 @@ class Hexpawn():
     def play(self, nmoves=1000, verbose=True):
         draw_info()
         game_control()
-        history = []
 
+        history = []
         if verbose:
             self.show()
             # self.draw_board(True)
@@ -272,10 +278,18 @@ class Hexpawn():
 
             if self.is_over():
                 self.draw_board(False)
+                session_state.ROOM.WINNER = session_state.ROOM.PLAYER
+                session_state.ROOM.SCORE = (
+                    session_state.ROOM.SCORE[0]
+                    + int(session_state.ROOM.WINNER == _WHITE),
+                    session_state.ROOM.SCORE[1]
+                    + int(session_state.ROOM.WINNER == _BLACK),
+                )
                 break
-            # else:
-            #     self.draw_board(True)
-            
+            else:
+                self.draw_board(True)
+            if (session_state.ROUND.PLAYER == _WHITE):
+                while (len(self.clicked_buttons) != 2): ok = 1
             move = self.player().ask_move(self)
             history.append((deepcopy(self), move))
             self.make_move(move)
@@ -316,7 +330,7 @@ def restart() -> None:
 # Continue new round
 def another_round() -> None:
     session_state.ROUND = deepcopy(session_state.ROUND)
-    session_state.ROUND.BOARD = np.zeros(shape=(5, 5), dtype=int)
+    session_state.ROUND.BOARD = np.zeros(shape=(4, 4), dtype=int)
     session_state.ROUND.PLAYER = -session_state.ROUND.PLAYER
     game.current_player = session_state.ROUND.PLAYER
     session_state.ROUND.WINNER = _BLANK
@@ -350,8 +364,8 @@ def draw_info() -> None:
         )
         # History scores
         SCORE_TAG.subheader("Scores")
-        SCORE_PLATE[0].metric("White", session_state.ROUND.HISTORY[0])
-        SCORE_PLATE[1].metric("Black", session_state.ROUND.HISTORY[1])
+        SCORE_PLATE[0].metric("White", session_state.ROUND.SCORE[0])
+        SCORE_PLATE[1].metric("Black", session_state.ROUND.SCORE[1])
         # Additional information
         if session_state.ROUND.WINNER != _BLANK:
             ROUND_INFO.write(
@@ -359,7 +373,7 @@ def draw_info() -> None:
             )
         else:
             ROUND_INFO.write(
-                f"#### **{_PLAYER_SYMBOL[game.current_player]} {_PLAYER_COLOR[game.current_player]}'s turn...**"
+                f"#### **{_PLAYER_SYMBOL[session_state.ROUND.PLAYER]} {_PLAYER_COLOR[session_state.ROUND.PLAYER]}'s turn...**"
             )
 
 if __name__ == "__main__":
@@ -370,4 +384,5 @@ if __name__ == "__main__":
     game = Hexpawn([Human_Player(),  AI_Player(ai)])
 
     # game.draw_info()
+    # print("main")
     game.play()

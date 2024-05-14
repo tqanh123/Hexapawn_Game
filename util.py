@@ -12,9 +12,10 @@ class Round:
             ],
             dtype = int
         )
-        self.PLAYER = _BLACK
+        self.PLAYER = _WHITE
         self.TURN = self.PLAYER
-        self.HISTORY = (0, 0)
+        self.SCORE = (0, 0)
+        self.HISTORY = []
         self.WINNER = _BLANK
         self.TIME = time.time()
         self.MOVES = []
