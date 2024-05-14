@@ -180,7 +180,7 @@ class Hexpawn():
     def switch_player(self):
         self.current_player = self.opponent_index()
         session_state.ROUND.PLAYER = self.current_player
-        session_state.ROUND.TURN += 1
+        
     
     def copy(self):
         return deepcopy(self)
@@ -283,8 +283,8 @@ class Hexpawn():
                 break
             else:
                 self.draw_board(True)
-            if (session_state.ROUND.PLAYER == _WHITE):
-                if len(self.clicked_buttons) != 2: break
+
+            if (session_state.ROUND.PLAYER == _WHITE and len(self.clicked_buttons) != 2): break
             move = self.player().ask_move(self)
             history.append((deepcopy(self), move))
             self.make_move(move)
@@ -300,6 +300,8 @@ class Hexpawn():
                 )
                 self.show()
             self.switch_player()
+            session_state.ROUND.TURN += 1
+        
         draw_info()
         game_control()
         history.append(deepcopy(self))
