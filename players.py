@@ -5,18 +5,7 @@ class Human_Player:
         self.name = name
 
     def ask_move(self, game):
-        # The str version of every move for comparison with the user input:
-        # moveStr = "NO_MOVE_DECIDED_YET"
-        # move = []
-        # print("human move")
-        # while True:
-        #     if len(game.clicked_buttons) != 2:
-        #         continue
-
         move = game.clicked_buttons
-        # print("ask_move")
-        # print(move)
-
         return to_string(move)
 
 

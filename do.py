@@ -5,7 +5,7 @@ from copy import deepcopy
 import numpy as np
 import streamlit as st
 from streamlit import session_state
-from util import to_string, to_tuple, Round
+from util import to_string, to_tuple, Round, _BLACK, _KILL, _BLANK, _MOVES, _PLAYER_COLOR, _PLAYER_SYMBOL, _STAND, _WHITE
 
 # Page configuration
 st.set_page_config(
@@ -18,39 +18,6 @@ st.set_page_config(
         "About": "Welcome to this web-based Gomoku game!\n\nHave any comment? Please let me know through [this post](https://discuss.streamlit.io/t/pvp-gomoku-game-in-streamlit/17403) or [issues](https://github.com/TeddyHuang-00/streamlit-gomoku/issues/new/choose)!\n\nIf you find this interesting, please leave a star in the [GitHub repo](https://github.com/TeddyHuang-00/streamlit-gomoku)",
     },
 )
-
-
-_BLANK = 0
-_WHITE = 1
-_BLACK = 2
-_STAND = 3
-_MOVES = 4
-_KILL  = 5
-_PLAYER_SYMBOL = {
-    _BLANK: "➕",
-    _WHITE: "⚪",
-    _BLACK: "⚫",
-    _STAND: "🔘",
-    _MOVES: "🟡",
-    _KILL : "🔴",
-
-}
-_PLAYER_COLOR = {
-    _BLANK: "Blank",
-    _WHITE: "White",
-    _BLACK: "Black",
-}
-
-_ROUND_TIMEOUT = 300
-_ROUND_COLOR = {
-    False: _BLACK,
-    True: _WHITE,
-}
-_ROUND_ANNOTATION = {
-    False: "(Opponent)",
-    True : "(You)",
-}
-
 
 
 # Main
@@ -72,7 +39,7 @@ with st.sidebar.container():
 GAME_INFO = st.sidebar.container()
 
 # Draw the board
-class Hexpawn():
+class Hexapawn():
     def __init__(self, players, size=(4, 4)) -> None:
         self.size = M, N = size
         # Initialize the game
@@ -95,8 +62,6 @@ class Hexpawn():
         self.players = players
         self.current_player = session_state.ROUND.PLAYER
         self.clicked_buttons = session_state.ROUND.MOVES
-        # print("init")
-        # print(self.clicked_buttons)
     
 
     def possible_moves(self):
@@ -149,9 +114,6 @@ class Hexpawn():
         while ( session_state.ROUND.MOVES != []):
             session_state.ROUND.MOVES.pop()
             self.clicked_buttons.pop()
-        # print("update_BOARD")
-        # print(session_state.ROUND.MOVES)
-        # print(session_state.ROUND.BOARD)
 
 
     # Check if winner emerge from move
@@ -237,20 +199,16 @@ class Hexpawn():
                     session_state.ROUND.BOARD[k][h[1] + 1] = self.opponent_index()
                 if (h[1] - 1 >= 0 and session_state.ROUND.BOARD[k][h[1] - 1] == _KILL):
                     session_state.ROUND.BOARD[k][h[1] - 1] = self.opponent_index()
-                print(session_state.ROUND.BOARD)
 
             session_state.ROUND.MOVES.append((x,y))
-            print("Check delete move")
-            print(session_state.ROUND.MOVES)
+
             moves = self.pawn_moves(x, y)
             for cell in (moves):
                 if session_state.ROUND.BOARD[cell[0]][cell[1]] != self.opponent_index():
                     session_state.ROUND.BOARD[cell[0]][cell[1]] = _MOVES
                 else:
                     session_state.ROUND.BOARD[cell[0]][cell[1]] = _KILL
-            print("handle_click _STAND")
-        
-        print(session_state.ROUND.BOARD)
+
     
     # Draw board
     def draw_board(self, response: bool):
@@ -361,21 +319,20 @@ def draw_info() -> None:
             """
             ---
 
-            ## A simple Gomoku game.
+            ## A simple Hexapawn game.
 
 
-            <a href="https://en.wikipedia.org/wiki/Gomoku#Freestyle_Gomoku" style="color:#FFFFFF">Freestyle Gomoku</a>
+            <a href="https://en.wikipedia.org/wiki/Hexapawn" style="color:#FFFFFF">info about Hexapawn</a>
 
             - no restrictions
-            - swap first player
-            - 5 by 5 board
+            - 4 by 4 board
             - no regrets
 
             Enjoy!
 
-            ##### by <a href="https://github.com/TeddyHuang-00" style="color:#FFFFFF">TeddyHuang-00</a> • <a href="https://github.com/TeddyHuang-00/streamlit-gomoku" style="color:#FFFFFF">Github repo</a>
+            ##### by <a href="https://github.com/tqanh123/Hexapawn_Game" style="color:#FFFFFF">TeddyHuang-00</a> • <a href="https://github.com/tqanh123/Hexapawn_Game" style="color:#FFFFFF">Github repo</a>
 
-            ##### <a href="mailto:huang_nan_2019@pku.edu.cn" style="color:#FFFFFF">Contact</a>
+            ##### <a href="mailto:...." style="color:#FFFFFF">Contact</a>
             """,
             unsafe_allow_html=True,
         )
@@ -398,7 +355,7 @@ if __name__ == "__main__":
     from NegaMax import Negamax
     scoring = lambda game: -100 if game.lose() else 0
     ai = Negamax(10, scoring)
-    game = Hexpawn([Human_Player(),  AI_Player(ai)])
+    game = Hexapawn([Human_Player(),  AI_Player(ai)])
 
     # game.draw_info()
     # print("main")
