@@ -227,18 +227,28 @@ class Hexpawn():
             session_state.ROUND.BOARD[x][y] = _STAND
             
             if (len(session_state.ROUND.MOVES) != 0):
-                while session_state.ROUND.MOVES != []:
-                    x = session_state.ROUND.MOVES.pop()
-                    session_state.ROUND.BOARD[x[0]][x[1]] = _BLANK
+                h = session_state.ROUND.MOVES.pop()
+                session_state.ROUND.BOARD[h[0]][h[1]] = self.current_player
+                k = h[0]+self.player().direction
+
+                if (session_state.ROUND.BOARD[k][h[1]] == _MOVES):
+                    session_state.ROUND.BOARD[k][h[1]] = _BLANK
+                if (h[1] + 1 < self.size[0] and session_state.ROUND.BOARD[k][h[1] + 1] == _KILL):
+                    session_state.ROUND.BOARD[k][h[1] + 1] = self.opponent_index()
+                if (h[1] - 1 >= 0 and session_state.ROUND.BOARD[k][h[1] - 1] == _KILL):
+                    session_state.ROUND.BOARD[k][h[1] - 1] = self.opponent_index()
+                print(session_state.ROUND.BOARD)
 
             session_state.ROUND.MOVES.append((x,y))
+            print("Check delete move")
+            print(session_state.ROUND.MOVES)
             moves = self.pawn_moves(x, y)
             for cell in (moves):
                 if session_state.ROUND.BOARD[cell[0]][cell[1]] != self.opponent_index():
                     session_state.ROUND.BOARD[cell[0]][cell[1]] = _MOVES
                 else:
                     session_state.ROUND.BOARD[cell[0]][cell[1]] = _KILL
-            # print("handle_click _STAND")
+            print("handle_click _STAND")
         
         print(session_state.ROUND.BOARD)
     
